@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio Dashboard — 2026年3月</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Noto Sans JP',sans-serif; background:#f0f2f5; color:#1F2937; line-height:1.6; }
+
+  .header { background:#fff; border-bottom:2px solid #004471; padding:24px 40px; display:flex; justify-content:space-between; align-items:center; }
+  .header h1 { font-size:20px; font-weight:700; color:#333; }
+  .header .sub { font-size:13px; color:#6B7280; }
+
+  .container { max-width:1400px; margin:24px auto; padding:0 24px; }
+
+  /* Alert Cards */
+  .alert-row { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-bottom:24px; }
+  .alert-card { background:#fff; border-radius:8px; padding:16px 20px; border-left:4px solid #DC2626; }
+  .alert-card.warn { border-left-color:#D97706; }
+  .alert-card.info { border-left-color:#004471; }
+  .alert-card .alert-title { font-size:13px; font-weight:700; color:#1F2937; margin-bottom:4px; }
+  .alert-card .alert-body { font-size:12px; color:#6B7280; line-height:1.5; }
+
+  /* KPI Summary */
+  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+  .kpi-card { background:#fff; border-radius:8px; padding:20px; border-top:2px solid #004471; }
+  .kpi-card .label { font-size:12px; color:#6B7280; margin-bottom:4px; }
+  .kpi-card .value { font-size:28px; font-weight:700; color:#1F2937; }
+  .kpi-card .unit { font-size:13px; color:#6B7280; margin-left:2px; }
+  .kpi-card .note { font-size:11px; color:#6B7280; margin-top:4px; }
+
+  /* Section Title */
+  .section-title { font-size:15px; font-weight:700; color:#1F2937; margin-bottom:16px; padding-left:12px; border-left:3px solid #004471; }
+
+  /* Company Card */
+  .company-card { background:#fff; border-radius:8px; margin-bottom:20px; overflow:hidden; }
+  .company-card.no-data { opacity:0.5; }
+  .card-header { padding:16px 24px; border-bottom:1px solid #E5E7EB; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+  .card-header h2 { font-size:16px; font-weight:700; color:#1F2937; }
+  .card-meta { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+
+  .pill { display:inline-block; padding:2px 10px; border-radius:12px; font-size:11px; font-weight:500; }
+  .pill-blue { background:#EFF6FF; color:#1D4ED8; }
+  .pill-green { background:#ECFDF5; color:#059669; }
+  .pill-amber { background:#FFFBEB; color:#D97706; }
+  .pill-red { background:#FEF2F2; color:#DC2626; }
+  .pill-gray { background:#F3F4F6; color:#6B7280; }
+  .pill-purple { background:#F3E8FF; color:#7C3AED; }
+
+  .card-body { padding:20px 24px; }
+  .card-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  .card-section h3 { font-size:13px; font-weight:700; color:#004471; margin-bottom:8px; }
+  .card-section ul { list-style:none; padding:0; }
+  .card-section li { font-size:12.5px; color:#1F2937; padding:3px 0; padding-left:14px; position:relative; line-height:1.55; }
+  .card-section li::before { content:"\2022"; position:absolute; left:0; color:#004471; font-weight:700; }
+
+  .card-topics { padding:16px 24px; border-top:1px solid #E5E7EB; }
+  .card-topics h3 { font-size:13px; font-weight:700; color:#004471; margin-bottom:8px; }
+  .card-topics ul { list-style:none; padding:0; }
+  .card-topics li { font-size:12.5px; color:#1F2937; padding:3px 0; padding-left:14px; position:relative; line-height:1.55; }
+  .card-topics li::before { content:"\2022"; position:absolute; left:0; color:#D97706; font-weight:700; }
+
+  .no-data-msg { padding:24px; text-align:center; color:#9CA3AF; font-size:13px; }
+
+  /* Fund group header */
+  .fund-group { margin-top:32px; margin-bottom:16px; }
+  .fund-group h2 { font-size:14px; font-weight:700; color:#6B7280; text-transform:uppercase; letter-spacing:1px; }
+
+  /* No-data grid */
+  .nodata-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:12px; margin-bottom:24px; }
+  .nodata-chip { background:#fff; border-radius:8px; padding:12px 16px; opacity:0.5; }
+  .nodata-chip .name { font-size:13px; font-weight:500; color:#6B7280; }
+  .nodata-chip .fund { font-size:11px; color:#9CA3AF; }
+
+  @media (max-width:900px) {
+    .kpi-row { grid-template-columns:repeat(2,1fr); }
+    .card-grid { grid-template-columns:1fr; }
+    .header { padding:16px; flex-direction:column; align-items:flex-start; gap:8px; }
+    .container { padding:0 12px; margin:16px auto; }
+    .alert-row { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Portfolio Dashboard &mdash; 2026年3月</h1>
+  <div class="sub">集計日: 2026-03-27 | 全投資先: 50社 | データあり: 15社</div>
+</div>
+
+<div class="container">
+
+<!-- Alerts -->
+<div class="alert-row">
+  <div class="alert-card">
+    <div class="alert-title">三谷電池 — 会社存続リスク</div>
+    <div class="alert-body">残キャッシュ約1,800万円。POC完成が資金調達の唯一の材料。完成遅延が繰り返されており状況は逼迫。</div>
+  </div>
+  <div class="alert-card">
+    <div class="alert-title">パワーレーザー — 6月キャッシュマイナス見込</div>
+    <div class="alert-body">5月末クロージング必須。エンジェルブリッジDD完了、バリュエーション交渉中。政策公庫5,000万円融資は投資契約締結が条件。</div>
+  </div>
+  <div class="alert-card">
+    <div class="alert-title">ポーラスタースペース — 9月キャッシュショート</div>
+    <div class="alert-body">キャッシュ約2,000万円、バーンレート350万円/月。最低1億円の資金調達が必要。2027年3月に短期借入2,000万円返済期限。</div>
+  </div>
+  <div class="alert-card warn">
+    <div class="alert-title">stu — 売上大幅下方修正</div>
+    <div class="alert-body">FY3/26売上を34億円→16億円に下方修正（Netflix Sanctuary 2脚本書き直しで3カ月遅延）。ダウンラウンドリスクあり。</div>
+  </div>
+  <div class="alert-card warn">
+    <div class="alert-title">SUiCTE — 月次CF計画未整備</div>
+    <div class="alert-body">現金残高1.5億円だが、来期売上計画は戦略基金1.2億円の採択が前提。月次CFが未完成で会社継続性の整理が急務。</div>
+  </div>
+  <div class="alert-card info">
+    <div class="alert-title">将来宇宙輸送 — C種クロージング完了</div>
+    <div class="alert-body">C種ラウンド全払込完了（3.5億円）。キャッシュ残高3.2億円。ただし月次損失4億円で引き続きランウェイ管理が重要。</div>
+  </div>
+  <div class="alert-card info">
+    <div class="alert-title">Letara — Headline Asia 7億円入金予定</div>
+    <div class="alert-body">4月入金予定。現金残高16億円台+確定受注15億円超。ランウェイ約2年で安定。</div>
+  </div>
+  <div class="alert-card info">
+    <div class="alert-title">ベルフェイス — MRR急成長中</div>
+    <div class="alert-body">bellSales AI MRR 4,000〜4,200万円到達見込。来期目標MRR 1億円+ブレークイーブン。Salesforceデファクト承認が追い風。</div>
+  </div>
+</div>
+
+<!-- ===== DATA CARDS (sorted by latest MTG date desc) ===== -->
+
+<div class="section-title">投資先カード一覧（直近MTG日付順）</div>
+
+<!-- ===== 2026-03-26 ===== -->
+
+<!-- SATORI -->
+<div class="company-card">
+  <div class="card-header">
+    <h2>SATORI</h2>
+    <div class="card-meta">
+      <span class="pill pill-blue">IF4</span>
+      <span class="pill pill-gray">2026-03-26 IF定例</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="card-grid">
+      <div class="card-section">
+        <h3>事業ステータス</h3>
+        <ul>
+          <li>ポップアップ買収: 4/10に66.7%持分譲渡実行・フル連結。残り33.3%は約1年後に追加取得（約2億円）</li>
+          <li>来期売上目標: 約13.4億円（精査中）</li>
+          <li>来期営業利益: 約2,000万円、EBITDA約1.2億円で黒字化見込み</li>
+          <li>SATORIプロダクト単体MRRは減少傾向。MU合算でも上半期下落→期末回復</li>
+          <li>データ系ベンダー（上場子会社）M&A検討中: 売上約3億円・利益約5,000万円・想定買収額約5億円</li>
+        </ul>
+      </div>
+      <div class="card-section">
+        <h3>資金状況</h3>
+        <ul>
+          <li>手元キャッシュ: 2月末時点約8億円</li>
+          <li>4月ポップアップ支払い（約3億円）で約5億円に減少</li>
+          <li>借入残高: 約6億円（CB 1億含む）、年間返済約1.8億円</li>
+          <li>キャッシュボトム: 約1.2億円（追加調達なしシナリオ）、ショートはしない見立て</li>
+          <li>みずほ追加融資NG — のれん約7億円が実質債務超過と判断。黒字化後に再検討</li>
+          <li>ダウンラウンド増資（プレ約60億円）×M&Aミックスファイナンスを検討中</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-topics">
+    <h3>注目トピック</h3>
+    <ul>
+      <li>4/10ポップアップ買収のクロージングが直近最重要イベント</li>
+      <li>来期EBITDA黒字化（約1.2億円）で経営安定化のフェーズへ</li>
+      <li>5月ゴルフで上場子会社M&A打診予定（データ系ベンダー）</li>
+      <li>AI: 赤浦さんがダウンラウンド増資×持分ミックスのファイナンス戦略検討中</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ベルフェイス -->
+<div class="company-card">
+  <div class="card-header">
+    <h2>ベルフェイス</h2>
+    <div class="card-meta">
+      <span class="pill pill-blue">IF3</span>
+      <span class="pill pill-gray">2026-03-26 定例</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="card-grid">
+      <div class="card-section">
+        <h3>事業ステータス</h3>
+        <ul>
+          <li>bellSales AI MRR: かんぽ生命（MR約400万円）クロージングで4,000〜4,200万円到達見込。今期事業計画ハイ達成</li>
+          <li>今期売上3.9億円（目標比107%）、MR3,520万円（目標比115%）で着地</li>
+          <li>NRR103%（ネガティブチャーンレート）、約1年でMR1,000万→1,500万に成長</li>
+          <li>金融機関がMRRの約30%（約1,300万円）。Accenture・Salesforce経由の紹介が牽引</li>
+          <li>Salesforceが bellSales AIとエージェント娘をエージェントフォースのデファクト商材として正式承認</li>
+          <li>明治安田生命: ID約1,500、MR約400万円、2027年度スタートで契約締結済み</li>
+          <li>プルデンシャル生命（4,000名規模、MR1,000万円規模）急浮上</li>
+          <li>来期目標: MRR 1億円 + ブレークイーブン達成</li>
+          <li>Salesforce連携済み顧客は解約ほぼゼロ（月次0.3%）、未導入は月次2.5%、LTVに8倍の差</li>
+        </ul>
+      </div>
+      <div class="card-section">
+        <h3>資金状況</h3>
+        <ul>
+          <li>ダウンラウンド調達により優先株基準価格は下がるが、普通株式への転換株数は変わらず</li>
+          <li>競合AmpTalk: MRR約6,000万円（エンタープライズ商談でバッティングなし）</li>
+          <li>競合ナレッジワーク: 全体MRR約2.5億円、JamRoll MRR約1,200万円（bellSales AIの約1/3）</li>
+          <li>ナレッジワーク最大顧客・日本通運は担当役員転職で解約ほぼ確定</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-topics">
+    <h3>注目トピック</h3>
+    <ul>
+      <li>エージェント娘: 「開発不要のエージェントフォースPOC最短成功パッケージ」4〜5月顧客提供開始。原価15%のみの高利益率プロダクト</li>
+      <li>Salesforceから年間300件超の紹介。エコシステムへのロックインが解約率を劇的に低下</li>
+      <li>来期MR目標1億〜1.5億円、その先3億円にはエージェントフォースのキャズム越えが必要</li>
+      <li>モーメンタム買収（SF社、2027年度完了予定）の長期的影響は不透明</li>
+      <li>AI: 来月取締役会でChasm越え成長戦略を報告予定</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ispace -->
+<div class="company-card">
+  <div class="card-header">
+    <h2>ispace</h2>
+    <div class="card-meta">
+      <span class="pill pill-blue">IF3</span>
+      <span class="pill pill-gray">2026-03-26 1on1（袴田さん）</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="card-grid">
+      <div class="card-section">
+        <h3>事業ステータス</h3>
+        <ul>
+          <li>OTVを活用した測位衛星の軌道投入を事業化の軸として推進中</li>
+          <li>ArcEdgeの測位衛星とTelespazioの衛星をOTV1号機に搭載する方向で調整中</li>
+          <li>SBIRで200億円（2機分）を獲得済み、ispaceが最大の受給者</li>
+          <li>軌道投入までのペイロード事業化を収益軸として割り切る方針</li>
+          <li>CLPSへの期待が薄れ、日本の政府予算確保を優先する方針</li>
+        </ul>
+      </div>
+      <div class="card-section">
+        <h3>政府・政策</h3>
+        <ul>
+          <li>4/9に天海さんへアプローチ予定（「日本版スターリンク」「月面原子炉」の2テーマ）</li>
+          <li>第4期政府予算への打ち込みが最重要課題</li>
+          <li>JAXAの佐々木さんがOTV＋測位衛星ミッションを加速案件として支持</li>
+          <li>月面インフラ側ペイロード（最大150kg）は第4期には入らない見込み</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-topics">
+    <h3>注目トピック</h3>
+    <ul>
+      <li>神谷さんを半年〜1年以内にCXO昇格予定（袴田さん意向）。CFO不在が組織課題</li>
+      <li>トムとの情報連携が1ヶ月以上途絶（怪我で入院）。SpaceX月シフトやNASA発表の背景情報が重要</li>
+      <li>6月のLunar Advisory Boardに確実に参加予定</li>
+      <li>NASAゲートウェイ計画凍結の影響を注視</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ポーラスタースペース -->
+<div class="company-card">
+  <div class="card-header">
+    <h2>ポーラスタースペース</h2>
+    <div class="card-meta">
+      <span class="pill pill-blue">IF4</span>
+      <span class="pill pill-red">ALERT</span>
+      <span class="pill pill-gray">2026-03-26 アソ定例</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="card-grid">
+      <div class="card-section">
+        <h3>事業ステータス</h3>
+        <ul>
+          <li>グローバルサウス案件: 3月末入金予定だが即時返済に充当</li>
+          <li>人員整理完了（弁護士入れて決着）、現在5名体制（日本4名+マレーシアPT 1名）</li>
+          <li>インドネシア大統領3月末来日、農水省がポーラスターのソリューションをプレゼン予定</li>
+          <li>アーキタイプ経由でポーラ・エスティローダーにアプローチ中</li>
+        </ul>
+      </div>
+      <div class="card-section">
+        <h3>資金状況</h3>
+        <ul>
+          <li>キャッシュ残高: 約2,000万円</li>
+          <li>バーンレート: 350万円/月</li>
+          <li>2026年9月にキャッシュショート見込</li>
+          <li>最低1億円の資金調達が必要。B-Dash検討中、CPグループに資料送付済み</li>
+          <li>借入: 広告から3,600万円残（短期2,000万円は2027年3月返済期限）、77銀行1,500〜1,600万円</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-topics">
+    <h3>注目トピック</h3>
+    <ul>
+      <li>9月キャッシュショートが最大リスク。VC紹介が急務</li>
+      <li>インドネシア大統領来日時の農水省プレゼンが近々の重要イベント</li>
+      <li>AI: 富永がVCや投資家をTakahiroに紹介（アクション中）</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== 2026-03-25 ===== -->
+
+<!-- SUiCTE -->
+<div class="company-card">
+  <div class="card-header">
+    <h2>SUiCTE</h2>
+    <div class="card-meta">
+      <span class="pill pill-blue">IF6</span>
+      <span class="pill pill-amber">WATCH</span>
+      <span class="pill pill-gray">2026-03-25 定例</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="card-grid">
+      <div class="card-section">
+        <h3>事業ステータス</h3>
+        <ul>
+          <li>文科省「光量子センシング技術」宇宙戦略基金第3期（来月公募開始予定）への申請を検討中</li>
+          <li>3月11日にJAXAを訪問し、ArcEdgeとともに提案内容を説明済み</li>
+          <li>アークエッジとの関係: 2年前よりトーンダウン、独自コンステレーションに注力中</li>
+        </ul>
+      </div>
+      <div class="card-section">
+        <h3>資金状況</h3>
+        <ul>
+          <li>2月末現金残高: 1億5,400万円</li>
+          <li>来期売上計画: 8,800万円（戦略基金1.2億円の採択が資金計画の前提）</li>
+          <li>月次キャッシュフロー計画が未完成 — 会社継続性の観点から早急な整備を要請</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-topics">
+    <h3>注目トピック</h3>
+    <ul>
+      <li>役員報酬を改定（3/24取締役会で決定済み）、投資家側は事前相談を求める指摘</li>
+      <li>月次CF計画表の作成が急務（AI あり）</li>
+      <li>AI: 上野さん（JAXA）とArcEdgeにヒアリング、事業計画資料送付</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Letara -->
+<div class="company-card">
+  <div class="card-header">
+    <h2>Letara</h2>
+    <div class="card-meta">
+      <span class="pill pill-purple">IF6</span>
+      <span class="pill pill-green">STABLE</span>
+      <span class="pill pill-gray">2026-03-25 株主定例</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="card-grid">
+      <div class="card-section">
+        <h3>事業ステータス</h3>
+        <ul>
+          <li>Intelsat向け: 第三者遅延で秋頃にずれ込み、打ち上げ2027年→2028年に後ろ倒し可能性</li>
+          <li>推進剤: N2OからH2O2への切り替え検討中（大型ではH2O2が有望）。今週〜来週中に判断</li>
+          <li>防衛: ロケットアシストドローン概念検討が好評、次年度プログラム組み込み濃厚</li>
+          <li>固体燃料ラムジェットRFP公開、LAXAS申請予定</li>
+          <li>防衛装備庁「ファストパス」プログラム（米SBIR Phase1モデル）申請準備中</li>
+          <li>GoTech（経産省）にロケット発射補助UAV開発を申請予定。ANA無人機チームと来週打合せ</li>
+        </ul>
+      </div>
+      <div class="card-section">
+        <h3>資金状況</h3>
+        <ul>
+          <li>現金残高: 16億円台（Headline Asia 7億円入金前）</li>
+          <li>バーンレート: 約1億円/月</li>
+          <li>ランウェイ: 約2年</li>
+          <li>Headline Asia: 7億円投資が本日許認可、2026年4月入金予定</li>
+          <li>確定受注: NEDO PCAフェーズ合計15億円 + 数千万円規模案件</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-topics">
+    <h3>注目トピック</h3>
+    <ul>
+      <li>赤浦さん: 戦略基金フェーズ3でiSpaceサンプルリターンにLetara推進機採用を提案（来月公募開始）</li>
+      <li>JAXA OTV落選（NEC採択）。ただしOTV重要性は今後さらに高まるとの見方</li>
+      <li>防衛分野でのパイプラインが急速に拡大中</li>
+      <li>推進剤・サイズ選定を今週〜来週中に確定予定</li>
+    </ul>
+  </div>
+</div>
+
+<!-- マテリアルゲート -->
+<div class="company-card">
+  <div class="card-header">
+    <h2>マテリアルゲート</h2>
+    <div class="card-meta">
+      <span class="pill pill-purple">IF6</span>
+      <span class="pill pill-gray">2026-03-25 アソ定例</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="card-grid">
+      <div class="card-section">
+        <h3>事業ステータス</h3>
+        <ul>
+          <li>村田製作所・王子製紙が共同研究提案に近づき、村田を優先する意向</li>
+          <li>東京化成から共同研究の正式打診あり（メモリ向け製膜に限定、成果物は共同出願・共同保有）。リーガルチェック中</li>
+          <li>メモリ向けチップ基板が今週末に届く予定、4月からキャパシタ層の作製に本格着手</li>
+          <li>テレビ東京の新番組から出演依頼あり（本物の取材）</li>
+        </ul>
+      </div>
+      <div class="card-section">
+        <h3>資金状況</h3>
+        <ul>
+          <li>デット調達: SMBCと政策公庫が最有力。SMBCは転換型エクイティでも対応可。目標最大7,200万円、まず4,000万円</li>
+          <li>NEDO: 2026年度公募が飛んだため、8月次回公募に向けて方針再検討中</li>
+          <li>防衛省ファンディング（5年・約20億円枠）への応募を本格検討中、締切まで約2ヶ月</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-topics">
+    <h3>注目トピック</h3>
+    <ul>
+      <li>村田製作所 vs 王子製紙の共同研究先選定が近々の重要判断</li>
+      <li>防衛省ファンディング（20億円枠）申請準備中</li>
+      <li>テレビ東京出演は認知度向上に寄与する可能性</li>
+    </ul>
+  </div>
+</div>
+
+<!-- SpaceBD -->
+<div class="company-card">
+  <div class="card-header">
+    <h2>SpaceBD</h2>
+    <div class="card-meta">
+      <span class="pill pill-blue">IF4</span>
+      <span class="pill pill-gray">2026-03-25 定例</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="card-grid">
+      <div class="card-section">
+        <h3>事業ステータス</h3>
+        <ul>
+          <li>防衛省から2件目の受注（1,200万円）を確定、ISS衛星放出案件</li>
+          <li>NASAゲートウェイ計画凍結ニュース — HTVXの大義が失われる可能性、SpaceBDにとっては追い風との見方</li>
+          <li>インドPSLVを押さえることで、SpaceX・Rocket Lab・インドの3軸でローンチサービスの競争力確立</li>
+          <li>M&A候補のリストアップ開始済み、みずほ経由で候補先の意向確認中</li>
+          <li>田代兄弟の防衛コンポーネント会社を買収候補として検討</li>
+        </ul>
+      </div>
+      <div class="card-section">
+        <h3>資金状況</h3>
+        <ul>
+          <li>みずほ銀行との資金調達スキーム（買収資金は無制限融資、債務超過防止のためエクイティ注入）を活用したM&A戦略を本格推進</li>
+          <li>赤浦はIPOより非上場でのエクイティ＋デット調達による成長を強く推奨</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-topics">
+    <h3>注目トピック</h3>
+    <ul>
+      <li>M&A戦略が本格始動 — みずほスキーム×非上場成長路線</li>
+      <li>インドへのアプローチルート開拓（赤浦担当）</li>
+      <li>防衛省受注が拡大中</li>
+    </ul>
+  </div>
+</div>
+
+<!-- マンションマーケット -->
+<div class="company-card">
+  <div class="card-header">
+    <h2>マンションマーケット</h2>
+    <div class="card-meta">
+      <span class="pill pill-blue">IF3</span>
+      <span class="pill pill-gray">2026-03-25 アソ定例</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="card-grid">
+      <div class="card-section">
+        <h3>事業ステータス</h3>
+        <ul>
+          <li>コア事業（アフィリエイト系送客メディア・データ提供）は継続中、Q1から大きな変化なし</li>
+          <li>不動産売買の仲介案件が3月初旬に契約成立、4月15日決済予定</li>
+          <li>東京マンション価格は開始当初比2〜2.5倍に高騰</li>
+          <li>LINEユーザー登録は現在約40人（本格稼働前）</li>
+          <li>4月から湾岸エリア（豊洲・品川・有明・勝どき・晴海）に絞ってテスト開始予定</li>
+          <li>データソースのLanesアカウント問題で積極的なデータ取得が困難に</li>
+        </ul>
+      </div>
+      <div class="card-section">
+        <h3>AI活用・新規事業</h3>
+        <ul>
+          <li>AI単体では差別化にならないという認識で一致</li>
+          <li>AI活用の3パターン: 社内人件費削減、既存SaaSへのAI追加、SIer的受託でAIカスタマイズ</li>
+          <li>不動産売買の契約書作成AI自動化に感触あるが品質担保が課題</li>
+          <li>低額仲介モデルは収益が伸びなかった過去あり、新料金設計が課題</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-topics">
+    <h3>注目トピック</h3>
+    <ul>
+      <li>4月に湾岸エリア限定でLINE登録獲得トライアル開始</li>
+      <li>大規模マンション（500〜1,000世帯）で登録率10%・売却接触30%・自社仲介25〜30%が事業成立条件</li>
+      <li>今泉が面白いAI活用サービスを次回共有予定</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== 2026-03-24 ===== -->
+
+<!-- stu -->
+<div class="company-card">
+  <div class="card-header">
+    <h2>stu</h2>
+    <div class="card-meta">
+      <span class="pill pill-blue">IF5</span>
+      <span class="pill pill-amber">WATCH</span>
+      <span class="pill pill-gray">2026-03-24 定例</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="card-grid">
+      <div class="card-section">
+        <h3>事業ステータス</h3>
+        <ul>
+          <li>FY3/26売上: 当初計画34億円→16億円程度に下方修正（Netflix Sanctuary 2の脚本書き直しで3カ月遅延）</li>
+          <li>FY3/27売上: 当初80億円+→65億円に修正見込み</li>
+          <li>黒田がLA・NY出張中。Joe（TikTokフォロワー300万人）、88 Rising（Derek）、Orbital Eraの出資者ベン・ロスとタッチポイント構築</li>
+          <li>13 de Marzoとクロスライセンス（セーラームーン中国展開×13dM日本展開、3カ年）を口頭合意</li>
+          <li>TV番組「Kasso」イベント来場者3,500人（目標6,000人の大幅未達）、ただしRedBullライブ配信は好評</li>
+        </ul>
+      </div>
+      <div class="card-section">
+        <h3>資金状況</h3>
+        <ul>
+          <li>12億円調達済みで直近の資金繰りに問題なし</li>
+          <li>大幅下振れによりダウンラウンドリスクあり</li>
+          <li>夏に1〜3億円のエクステンションラウンドを計画中（CVCや現地VCとの話が進行中）</li>
+          <li>決算期を3月→9月に変更することで期末納品リスク軽減を検討</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-topics">
+    <h3>注目トピック</h3>
+    <ul>
+      <li>Netflix Sanctuary 2は放送予定が2027年12月→最短2028年4月にずれ込み（制作費追加負担なし）</li>
+      <li>Orbital EraとA24のミーティングが3/25に予定</li>
+      <li>今夏Head in the Cloudフェスで88 Risingがセーラームーン衣装企画を提案</li>
+      <li>予実精度改善を黒田・大森・坂本・山元で推進中</li>
+      <li>AI: 予算未達・売上ずれの説明資料を株主に共有予定</li>
+    </ul>
+  </div>
+</div>
+
+<!-- パワーレーザー -->
+<div class="company-card">
+  <div class="card-header">
+    <h2>パワーレーザー</h2>
+    <div class="card-meta">
+      <span class="pill pill-purple">IF6</span>
+      <span class="pill pill-red">ALERT</span>
+      <span class="pill pill-gray">2026-03-24 アソ定例</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="card-grid">
+      <div class="card-section">
+        <h3>事業ステータス</h3>
+        <ul>
+          <li>R6補正予算（1.7億円）の固体レーザー用結晶作成装置を3/12に納入・研修完了、利益2,000万円で初の売上計上</li>
+          <li>R7補正予算（6億円）の半導体レーザー製造装置群: 7〜8社と仕様調整中、納入2027年1〜2月、利益5,000〜6,000万円超見込み</li>
+          <li>防衛装備庁「安全保障技術推進制度」（5年・総額20億円）への応募検討中、締切5/20</li>
+          <li>宇宙戦略基金第3期「宇宙交通管理」テーマ（4件・最大50億円）への連携先検討中</li>
+        </ul>
+      </div>
+      <div class="card-section">
+        <h3>資金状況</h3>
+        <ul>
+          <li>6月にキャッシュがマイナスになる見込み — 5月末までのクロージングが必須</li>
+          <li>エンジェルブリッジ（笠井代表ら5名）が3/23来訪しDD完了、今週バリュエーション交渉開始</li>
+          <li>日本政策金融公庫: 5,000万円融資予定（投資契約書締結が条件）</li>
+          <li>投資委員会4/15 → 契約書5月中旬 → クロージング5月末の予定</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-topics">
+    <h3>注目トピック</h3>
+    <ul>
+      <li>5月末クロージングが会社存続の生命線。スケジュール遵守が最重要</li>
+      <li>4/1付で契約社員1名入社（レーザー研から）、パワーレーザー共同研究所を4/1設置予定</li>
+      <li>半導体レーザーの電気→光変換効率は約40〜50%（固体レーザーの約10%から大幅向上）</li>
+      <li>赤浦にバリュエーション確認→山本さんに共有予定</li>
+    </ul>
+  </div>
+</div>
+
+<!-- MJOLNIR SPACEWORKS -->
+<div class="company-card">
+  <div class="card-header">
+    <h2>MJOLNIR SPACEWORKS</h2>
+    <div class="card-meta">
+      <span class="pill pill-blue">IF5</span>
+      <span class="pill pill-gray">2026-03-24 アソ定例</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="card-grid">
+      <div class="card-section">
+        <h3>事業ステータス</h3>
+        <ul>
+          <li>事業・開発ともに特記事項なし</li>
+        </ul>
+      </div>
+      <div class="card-section">
+        <h3>資金状況</h3>
+        <ul>
+          <li>MUFGがスタートアップ向けオンラインレンディングサービスを提供（決算書不要・最短1〜2日・最大1,000万円）</li>
+          <li>返済方法: 一括返済（3カ月）または分割返済（最大12カ月）</li>
+          <li>資金繰りが厳しいポートフォリオ企業（クリオネ・パーカー・レグミン等）への活用を検討</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-topics">
+    <h3>注目トピック</h3>
+    <ul>
+      <li>MUFGオンラインレンディング情報がポートフォリオ横断で有用（みずほ類似サービスは2023年に終了）</li>
+      <li>今泉がサービスリンクをMessengerで共有予定</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== 2026-03-23 ===== -->
+
+<!-- EBOSI -->
+<div class="company-card">
+  <div class="card-header">
+    <h2>EBOSI</h2>
+    <div class="card-meta">
+      <span class="pill pill-purple">IF6</span>
+      <span class="pill pill-gray">2026-03-23 アソ定例</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="card-grid">
+      <div class="card-section">
+        <h3>事業ステータス</h3>
+        <ul>
+          <li>制御システム・基準対応電池の2事業とも計画どおり進行、バッドニュースなし</li>
+          <li>制御システム: 「セルは同じでもシステム変更で効率1.5倍・寿命1.5倍」が主な訴求点</li>
+          <li>積水・愛心との共同開発/部品調達の枠組みを瀬川先生経由で交渉中</li>
+          <li>6月頃からサンプルワーク → 7〜8月に積水・愛心との契約手続き開始を目指す</li>
+          <li>基準対応電池: 業界技術の試験・校正に必要なデバイスとしてEBOSIが適任と評価</li>
+          <li>エンジニアリングサンプル完成目標は2026年内（1〜2ヶ月遅れのストレッチ目標）</li>
+        </ul>
+      </div>
+      <div class="card-section">
+        <h3>資金状況</h3>
+        <ul>
+          <li>月次固定費: 約340〜350万円（人件費・顧問料・東大共同研究費150万円含む）</li>
+          <li>キャッシュフローはほぼ一定の負の傾きで推移</li>
+          <li>研究費は当面部品代程度</li>
+          <li>8月頃に連携先との契約具体化後、追加資金調達の規模・タイミングを見直し予定</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-topics">
+    <h3>注目トピック</h3>
+    <ul>
+      <li>3名の採用決定・オフィス入居開始（淡井氏・田中氏・田田氏）</li>
+      <li>4/1から東大との共同研究契約更新。8月までに利益配分含む契約整備が必要</li>
+      <li>経産省JPSC（ペロブスカイト太陽電池普及促進協議会）に赤浦氏が入会、4月始動</li>
+      <li>知財戦略が固まる前の共同出願リスクを避け、まず原理検証で自社の立場を強化する方針</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 三谷電池 -->
+<div class="company-card">
+  <div class="card-header">
+    <h2>三谷電池</h2>
+    <div class="card-meta">
+      <span class="pill pill-purple">IF6</span>
+      <span class="pill pill-red">ALERT</span>
+      <span class="pill pill-gray">2026-03-23 アソ定例</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="card-grid">
+      <div class="card-section">
+        <h3>事業ステータス</h3>
+        <ul>
+          <li>優先開発3本: (1)インクジェット用UPS（瞬停電源）、(2)電灯用セーブ、(3)IPX3R用セル改良</li>
+          <li>インクジェット用UPS: 回路設計完了・部品実装中、4月上旬に顧客先で実証実験予定</li>
+          <li>エネルギー分配を192W+40W構成に改良、約25%性能向上見込み</li>
+          <li>IPX3R用セル集電端子改良: 完成まで約1週間・リスクなし</li>
+          <li>当初年末完成・1月実証の予定が2月・3月と繰り返し遅延（仕様変更、現在仕様は固定済み）</li>
+          <li>POCでの良い結果が次の資金調達の唯一の材料</li>
+        </ul>
+      </div>
+      <div class="card-section">
+        <h3>資金状況</h3>
+        <ul>
+          <li>残キャッシュ: 約1,800万円</li>
+          <li>POCが動かないと次の資金が集められず、会社存続リスクに直結</li>
+          <li>補助金: 本作り締切5/20、NEDO申請5月中旬予定（日付未確定）</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-topics">
+    <h3>注目トピック</h3>
+    <ul>
+      <li>「完成予定と言っていることが本当に完成予定なのか分からない」（Imaizumi）— 信頼性に懸念</li>
+      <li>3月末までにキャパシタとパワーアシスト装置完成 → 4月上旬の顧客先実証が最重要マイルストーン</li>
+      <li>太陽光発電安定化・効率化用デバイスは海外先との打ち合わせ完了、進める段取りに</li>
+    </ul>
+  </div>
+</div>
+
+<!-- 将来宇宙輸送システム -->
+<div class="company-card">
+  <div class="card-header">
+    <h2>将来宇宙輸送システム</h2>
+    <div class="card-meta">
+      <span class="pill pill-blue">IF5</span>
+      <span class="pill pill-gray">2026-03-23 取締役会</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="card-grid">
+      <div class="card-section">
+        <h3>事業ステータス</h3>
+        <ul>
+          <li>SBIR: 最終2社に残れなかったが技術評価は高い、FH2延長・追加配分（約10億円規模）に向け3月末〜4月に申請</li>
+          <li>日本旅行との資本業務提携（アスカII有人宇宙旅行サービス、2041年まで）を承認、来週締結予定</li>
+          <li>米国ナラビティ: Exos AerospaceとMOU締結（2027年Q1 NASA・DOD向け、Q2コマーシャル開始予定）</li>
+          <li>C種ラウンド全払込完了（今回払込総額3.5億円）</li>
+          <li>宇宙戦略基金: 有人安全基盤技術テーマで採択済み（半年間でステージゲート・中間審査を通過必要）</li>
+          <li>ナラビティ TRL4は数週間以内達成見込み、TRL7は年内、コマーシャル2027年Q2</li>
+        </ul>
+      </div>
+      <div class="card-section">
+        <h3>資金状況</h3>
+        <ul>
+          <li>2月末キャッシュ残高: 3億2千万円（前月比+1.5億円、8億円調達クローズが主因）</li>
+          <li>2月売上: 600万円（スポンサー料200万円+エバラ共同研究費）</li>
+          <li>2月の損失: 4億円（人件費・研究開発費含む）</li>
+          <li>Mスクエア解約: 解約金1,160万円、敷金5,800万円返還予定</li>
+          <li>近く予定される入金: アニマルスピリッツ・モルプラス約3.5億円、敷金返還5,800万円、エバラ・日経3,500〜4,000万円</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="card-topics">
+    <h3>注目トピック</h3>
+    <ul>
+      <li>ナラビティ事業: 4月末まで延長承認。VCからの投資レター・DD着手が判断基準、未達なら事業清算</li>
+      <li>シリウス: Ursa Majorエンジン買取交渉が代表交代で中断、2026年10月デッドライン</li>
+      <li>Mスクエア解約で固定費削減・ランウェイ延長。1〜3月を財政安定化フェーズ完了と評価</li>
+      <li>4月以降: プロジェクトごとの目標・予算・人員・バリュー貢献を可視化、AI駆動開発導入</li>
+      <li>全社予算管理システム化を今後2週間以内に実施予定</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== NO DATA SECTION ===== -->
+
+<div style="margin-top:40px;">
+  <div class="section-title">データ未入力の投資先</div>
+  <p style="font-size:12px; color:#9CA3AF; margin-bottom:16px;">meeting_notes.md がテンプレートのまま、または議事録データが未記入の投資先です。</p>
+
+  <div style="margin-bottom:12px; font-size:12px; font-weight:700; color:#6B7280;">IF1</div>
+  <div class="nodata-grid">
+    <div class="nodata-chip"><div class="name">スピカ</div><div class="fund">IF1</div></div>
+    <div class="nodata-chip"><div class="name">ゆめみ</div><div class="fund">IF1</div></div>
+  </div>
+
+  <div style="margin-bottom:12px; font-size:12px; font-weight:700; color:#6B7280;">IF2</div>
+  <div class="nodata-grid">
+    <div class="nodata-chip"><div class="name">トヨクモ</div><div class="fund">IF2</div></div>
+    <div class="nodata-chip"><div class="name">YAMAP</div><div class="fund">IF2</div></div>
+    <div class="nodata-chip"><div class="name">ジェネストリーム</div><div class="fund">IF2</div></div>
+    <div class="nodata-chip"><div class="name">retro</div><div class="fund">IF2</div></div>
+    <div class="nodata-chip"><div class="name">Crevo</div><div class="fund">IF2</div></div>
+  </div>
+
+  <div style="margin-bottom:12px; font-size:12px; font-weight:700; color:#6B7280;">IF3</div>
+  <div class="nodata-grid">
+    <div class="nodata-chip"><div class="name">skillnote</div><div class="fund">IF3</div></div>
+    <div class="nodata-chip"><div class="name">hosty</div><div class="fund">IF3</div></div>
+    <div class="nodata-chip"><div class="name">ClipLine</div><div class="fund">IF3</div></div>
+    <div class="nodata-chip"><div class="name">TYFFON</div><div class="fund">IF3</div></div>
+    <div class="nodata-chip"><div class="name">ユアマイスター</div><div class="fund">IF3</div></div>
+  </div>
+
+  <div style="margin-bottom:12px; font-size:12px; font-weight:700; color:#6B7280;">IF4</div>
+  <div class="nodata-grid">
+    <div class="nodata-chip"><div class="name">9lione</div><div class="fund">IF4</div></div>
+    <div class="nodata-chip"><div class="name">レグミン</div><div class="fund">IF4</div></div>
+    <div class="nodata-chip"><div class="name">Catallaxy</div><div class="fund">IF4</div></div>
+    <div class="nodata-chip"><div class="name">バンカーズ</div><div class="fund">IF4</div></div>
+    <div class="nodata-chip"><div class="name">MagicPod</div><div class="fund">IF4</div></div>
+    <div class="nodata-chip"><div class="name">未来貯金</div><div class="fund">IF4</div></div>
+    <div class="nodata-chip"><div class="name">park&amp;port</div><div class="fund">IF4</div></div>
+    <div class="nodata-chip"><div class="name">ペイトナー</div><div class="fund">IF4</div></div>
+  </div>
+
+  <div style="margin-bottom:12px; font-size:12px; font-weight:700; color:#6B7280;">IF5</div>
+  <div class="nodata-grid">
+    <div class="nodata-chip"><div class="name">Arch</div><div class="fund">IF5</div></div>
+    <div class="nodata-chip"><div class="name">岩谷技研</div><div class="fund">IF5</div></div>
+    <div class="nodata-chip"><div class="name">YAGO</div><div class="fund">IF5</div></div>
+    <div class="nodata-chip"><div class="name">アーク・エッジ・スペース</div><div class="fund">IF5</div></div>
+    <div class="nodata-chip"><div class="name">SHOCHU X</div><div class="fund">IF5</div></div>
+    <div class="nodata-chip"><div class="name">AGRIST</div><div class="fund">IF5</div></div>
+    <div class="nodata-chip"><div class="name">LIFEHUB</div><div class="fund">IF5</div></div>
+    <div class="nodata-chip"><div class="name">クロスシー</div><div class="fund">IF5</div></div>
+    <div class="nodata-chip"><div class="name">コミスマ</div><div class="fund">IF5</div></div>
+  </div>
+
+  <div style="margin-bottom:12px; font-size:12px; font-weight:700; color:#6B7280;">IF6</div>
+  <div class="nodata-grid">
+    <div class="nodata-chip"><div class="name">Helios</div><div class="fund">IF6</div></div>
+    <div class="nodata-chip"><div class="name">pHydrogen</div><div class="fund">IF6</div></div>
+    <div class="nodata-chip"><div class="name">RLT</div><div class="fund">IF6</div></div>
+    <div class="nodata-chip"><div class="name">PathAhead</div><div class="fund">IF6</div></div>
+    <div class="nodata-chip"><div class="name">従業員承継</div><div class="fund">IF6</div></div>
+    <div class="nodata-chip"><div class="name">原子力</div><div class="fund">IF6</div></div>
+  </div>
+
+  <div style="margin-bottom:12px; font-size:12px; font-weight:700; color:#6B7280;">Other Teams</div>
+  <div class="nodata-grid">
+    <div class="nodata-chip"><div class="name">squeeze</div><div class="fund">IF3</div></div>
+    <div class="nodata-chip"><div class="name">リトプラ</div><div class="fund">IF3</div></div>
+    <div class="nodata-chip"><div class="name">アスエネ</div><div class="fund">IF4</div></div>
+    <div class="nodata-chip"><div class="name">cinemaleap</div><div class="fund">IF5</div></div>
+  </div>
+</div>
+
+<div style="text-align:center; padding:40px 0 24px; font-size:11px; color:#9CA3AF;">
+  CONFIDENTIAL AND PROPRIETARY &mdash; Generated 2026-03-27
+</div>
+
+</div>
+</body>
+</html>
