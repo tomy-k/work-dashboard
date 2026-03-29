@@ -67,9 +67,31 @@
   .highlight ul { font-size:13px; padding-left:20px; }
   .highlight li { margin-bottom:4px; }
 
+  /* Responsive table */
+  .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
   @media (max-width:900px) {
     .kpi-row { grid-template-columns:repeat(2,1fr); }
     .grid-2, .grid-3 { grid-template-columns:1fr; }
+    .header { padding:16px 16px; flex-direction:column; align-items:flex-start; gap:8px; }
+    .header h1 { font-size:17px; }
+    .container { padding:0 12px; margin:16px auto; }
+    .section { padding:16px; }
+    .kpi-card { padding:14px; }
+    .kpi-card .value { font-size:22px; }
+    .chart-box { height:220px; }
+    table { font-size:12px; }
+    th, td { padding:6px 8px; white-space:nowrap; }
+  }
+
+  @media (max-width:480px) {
+    .kpi-row { grid-template-columns:1fr 1fr; gap:8px; }
+    .kpi-card .value { font-size:20px; }
+    .kpi-card .label { font-size:11px; }
+    .section-title { font-size:14px; }
+    .role-name { font-size:12px; }
+    .highlight { padding:12px; }
+    .highlight ul { font-size:12px; }
   }
 </style>
 </head>
@@ -159,7 +181,7 @@
   <!-- Portfolio engagement table -->
   <div class="section">
     <div class="section-title">投資先エンゲージメント（3月）</div>
-    <table>
+    <div class="table-wrap"><table>
       <thead>
         <tr>
           <th>#</th>
@@ -184,14 +206,14 @@
         <tr><td>11</td><td><strong>SpaceBD</strong></td><td><span class="pill pill-green">定例</span></td><td>定例参加</td><td><span class="pill pill-green">通常</span></td><td><div class="bar-container"><div class="bar-bg"><div class="bar-fill" style="width:30%;background:#94a3b8"></div></div>30%</div></td></tr>
         <tr><td>12</td><td><strong>YAGO</strong></td><td><span class="pill pill-green">全体MTG</span></td><td>全体MTG参加</td><td><span class="pill pill-green">通常</span></td><td><div class="bar-container"><div class="bar-bg"><div class="bar-fill" style="width:30%;background:#94a3b8"></div></div>30%</div></td></tr>
       </tbody>
-    </table>
+    </table></div>
   </div>
 
   <!-- Mentoring + Projects -->
   <div class="grid-2">
     <div class="section">
       <div class="section-title">後輩育成トラッカー</div>
-      <table>
+      <div class="table-wrap"><table>
         <thead><tr><th>メンバー</th><th>ロール</th><th>主なFB内容</th><th>頻度</th></tr></thead>
         <tbody>
           <tr><td><strong>石津さん</strong></td><td>Associate</td><td>コミュニケーションツール使い分け、日付誤記の注意、簿記進捗</td><td>週2+</td></tr>
@@ -199,7 +221,7 @@
           <tr><td><strong>藤田さん</strong></td><td>BDA</td><td>ISC取締役会内容共有、決算書更新依頼、情報共有・報連相の指導</td><td>週1</td></tr>
           <tr><td><strong>竹之内さん</strong></td><td>BDA</td><td>キャリア相談（長期視点でのアドバイス）</td><td>随時</td></tr>
         </tbody>
-      </table>
+      </table></div>
       <div class="highlight">
         <h4>育成スタイルの特徴</h4>
         <ul>
@@ -211,7 +233,7 @@
     </div>
     <div class="section">
       <div class="section-title">戦略プロジェクト</div>
-      <table>
+      <div class="table-wrap"><table>
         <thead><tr><th>PJ</th><th>ステータス</th><th>概要</th></tr></thead>
         <tbody>
           <tr><td><strong>Trillion Research</strong></td><td><span class="pill pill-amber">進行中</span></td><td>PE17社・350社超ポートフォリオ調査 → M&A/ロールアップ戦略リサーチ</td></tr>
@@ -220,7 +242,7 @@
           <tr><td><strong>ファンド報告会準備</strong></td><td><span class="pill pill-amber">進行中</span></td><td>IFEL/IFV決算書のマークアップ確認、4/3読み合わせ</td></tr>
           <tr><td><strong>front × LPR</strong></td><td><span class="pill pill-green">継続</span></td><td>AGRIST/レグミンへのLP/CVC紹介</td></tr>
         </tbody>
-      </table>
+      </table></div>
       <div class="highlight">
         <h4>AI活用状況</h4>
         <ul>
