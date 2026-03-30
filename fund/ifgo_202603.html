@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IFGO Dashboard — 2026年3月</title>
+<style>
+
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Noto Sans JP',sans-serif; background:#f0f2f5; color:#1F2937; line-height:1.6; }
+
+  .header { background:#fff; border-bottom:2px solid #004471; padding:24px 40px; display:flex; justify-content:space-between; align-items:center; }
+  .header h1 { font-size:20px; font-weight:700; color:#333; }
+  .header .sub { font-size:13px; color:#6B7280; }
+
+  .container { max-width:1400px; margin:24px auto; padding:0 24px; }
+
+  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+  .kpi-card { background:#fff; border-radius:8px; padding:20px; border-top:2px solid #004471; }
+  .kpi-card .label { font-size:12px; color:#6B7280; margin-bottom:4px; }
+  .kpi-card .value { font-size:28px; font-weight:700; color:#1F2937; }
+  .kpi-card .unit { font-size:13px; color:#6B7280; margin-left:2px; }
+  .kpi-card .note { font-size:11px; color:#6B7280; margin-top:4px; }
+
+  .section-title { font-size:15px; font-weight:700; color:#1F2937; margin-bottom:16px; padding-left:12px; border-left:3px solid #004471; }
+
+  .company-card { background:#fff; border-radius:8px; margin-bottom:20px; overflow:hidden; }
+  .card-header { padding:16px 24px; border-bottom:1px solid #E5E7EB; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+  .card-header h2 { font-size:16px; font-weight:700; color:#1F2937; }
+  .card-meta { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+
+  .pill { display:inline-block; padding:2px 10px; border-radius:12px; font-size:11px; font-weight:500; }
+  .pill-blue { background:#EFF6FF; color:#1D4ED8; }
+  .pill-green { background:#ECFDF5; color:#059669; }
+  .pill-amber { background:#FFFBEB; color:#D97706; }
+  .pill-red { background:#FEF2F2; color:#DC2626; }
+  .pill-gray { background:#F3F4F6; color:#6B7280; }
+
+  .card-body { padding:20px 24px; }
+  .card-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  .card-section h3 { font-size:13px; font-weight:700; color:#004471; margin-bottom:8px; }
+  .card-section ul { list-style:none; padding:0; }
+  .card-section li { font-size:12.5px; color:#1F2937; padding:3px 0; padding-left:14px; position:relative; line-height:1.55; }
+  .card-section li::before { content:"\2022"; position:absolute; left:0; color:#004471; font-weight:700; }
+
+  .card-topics { padding:16px 24px; border-top:1px solid #E5E7EB; }
+  .card-topics h3 { font-size:13px; font-weight:700; color:#004471; margin-bottom:8px; }
+  .card-topics ul { list-style:none; padding:0; }
+  .card-topics li { font-size:12.5px; color:#1F2937; padding:3px 0; padding-left:14px; position:relative; line-height:1.55; }
+  .card-topics li::before { content:"\2022"; position:absolute; left:0; color:#D97706; font-weight:700; }
+
+  .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .fin-table { width:100%; border-collapse:collapse; font-size:12px; }
+  .fin-table th { background:#F9FAFB; padding:6px 10px; text-align:right; font-weight:500; color:#6B7280; border-bottom:1px solid #E5E7EB; font-size:11px; }
+  .fin-table th:first-child { text-align:left; }
+  .fin-table td { padding:6px 10px; text-align:right; border-bottom:1px solid #F3F4F6; white-space:nowrap; }
+  .fin-table td.row-label { text-align:left; font-weight:500; color:#374151; }
+  .fin-table td.negative { color:#DC2626; }
+
+  .fund-info { background:#fff; border-radius:8px; padding:20px; margin-bottom:24px; border-top:2px solid #004471; }
+  .fund-info h3 { font-size:14px; font-weight:700; color:#1F2937; margin-bottom:12px; }
+  .fund-info-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:12px; }
+  .fund-info-item .fi-label { font-size:11px; color:#6B7280; }
+  .fund-info-item .fi-value { font-size:13px; font-weight:500; color:#1F2937; }
+
+  @media (max-width:900px) {
+    .kpi-row { grid-template-columns:repeat(2,1fr); }
+    .card-grid { grid-template-columns:1fr; }
+    .header { padding:16px; flex-direction:column; align-items:flex-start; gap:8px; }
+    .header h1 { font-size:17px; }
+    .container { padding:0 12px; margin:16px auto; }
+    .kpi-card .value { font-size:22px; }
+    .fund-info-grid { grid-template-columns:1fr 1fr; }
+    table { font-size:11px; }
+    th, td { padding:4px 6px; }
+  }
+  @media (max-width:480px) {
+    .kpi-row { grid-template-columns:1fr 1fr; gap:8px; }
+    .kpi-card .value { font-size:20px; }
+    .kpi-card .label { font-size:11px; }
+    .section-title { font-size:14px; }
+  }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>IFGO Dashboard &mdash; 2026年3月</h1>
+  <div class="sub">集計日: 2026-03-30 | IF Growth Opportunity Fund I, L.P. | 投資先: 19社</div>
+</div>
+
+<div class="container">
+
+<div class="fund-info">
+  <h3>ファンド概要</h3>
+  <div class="fund-info-grid">
+    <div class="fund-info-item">
+      <div class="fi-label">正式名称</div>
+      <div class="fi-value">IF Growth Opportunity Fund I, L.P.</div>
+    </div>
+    <div class="fund-info-item">
+      <div class="fi-label">設立</div>
+      <div class="fi-value">2021年6月15日</div>
+    </div>
+    <div class="fund-info-item">
+      <div class="fi-label">GP</div>
+      <div class="fi-value">Incubate Fund Growth I(GP), Limited</div>
+    </div>
+    <div class="fund-info-item">
+      <div class="fi-label">登録地</div>
+      <div class="fi-value">ケイマン諸島</div>
+    </div>
+    <div class="fund-info-item">
+      <div class="fi-label">ファンド期間</div>
+      <div class="fi-value">2021/6/15 - 2028/12/31</div>
+    </div>
+    <div class="fund-info-item">
+      <div class="fi-label">監査法人</div>
+      <div class="fi-value">Ernst &amp; Young</div>
+    </div>
+  </div>
+</div>
+
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="label">NAV（2025年12月末）</div>
+    <div class="value">100<span class="unit">億円</span></div>
+    <div class="note">純資産価値</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">投資原価合計</div>
+    <div class="value">143.7<span class="unit">億円</span></div>
+    <div class="note">Transaction Price ベース</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">コミットメント総額</div>
+    <div class="value">171<span class="unit">億円</span></div>
+    <div class="note">LP: 165億円 / SLP: 6億円</div>
+  </div>
+  <div class="kpi-card">
+    <div class="label">投資先数</div>
+    <div class="value">19<span class="unit">社</span></div>
+    <div class="note">上場3社 / 非上場16社</div>
+  </div>
+</div>
+
+<div class="section-title">投資先カード一覧（投資原価順）</div>
+
+
+    <div class="company-card">
+      <div class="card-header">
+        <h2>株式会社ispace</h2>
+        <div class="card-meta">
+          <span class="pill pill-green">上場</span>
+          <span class="pill pill-blue">投資原価 25.0億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2023/3</th><th>2024/3</th><th>2025/3</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>989</td><td>2,357</td><td>4,743</td></tr><tr><td class="row-label">営業損益</td><td class="negative">▲11,024</td><td class="negative">▲5,502</td><td class="negative">▲9,795</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲11,398</td><td class="negative">▲2,366</td><td class="negative">▲11,945</td></tr><tr><td class="row-label">総資産</td><td>7,193</td><td>27,033</td><td>27,189</td></tr><tr><td class="row-label">純資産</td><td>2,348</td><td>9,745</td><td>7,008</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>2025年3月期（実績） 売上高 4,743 営業損益 ▲9,795。</li><li>2026年3月期（2025年12月末時点実績） 売上高 2,743 営業損益 ▲6,948。</li><li>2026年3月期（見込） 売上高 3,400 営業損益 ▲10,000</li><li>Q1でデータビジネスの初売上を計上。5月にSMBC・みずほから計150億円の借入を実行した。6月末のキャッシュは約265億円を確保。計画はミッション3等の進捗に沿って推移。</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>2027年3月期（計画） ※会社公表情報なし</li><li>Mission 3（APEX 1.0、ispace-US主導）およびMission 6（Series 3、日本設計）を2027年打上予定。</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>ベルフェイス株式会社</h2>
+        <div class="card-meta">
+          <span class="pill pill-gray">非上場</span>
+          <span class="pill pill-blue">投資原価 18.2億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2023/3</th><th>2024/3</th><th>2025/3</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>1,323</td><td>1,126</td><td>1,050</td></tr><tr><td class="row-label">営業損益</td><td>-</td><td class="negative">▲772</td><td class="negative">▲372</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲1,147</td><td class="negative">▲876</td><td class="negative">▲386</td></tr><tr><td class="row-label">総資産</td><td>1,693</td><td>558</td><td>273</td></tr><tr><td class="row-label">純資産</td><td>396</td><td class="negative">▲479</td><td class="negative">▲864</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>2025年3月期（実績）売上高 1,050 営業損益 ▲372</li><li>2026年3月期（2025年12月時点実績）売上高 425 営業損益 ▲333</li><li>2026年3月期（見込）売上高 527 営業損益 ▲495</li><li>進行期においてbellFace事業を譲渡したことにより、売上高および営業利益はいずれも前年対比で減少している。</li><li>2025年10月にSpiral Capital / Hirac Fundをリードとして、4.67億円の資金調達を実施。</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>2027年3月期（計画）売上高 861 営業損益 ▲136</li><li>競合勝率・リード受注率を重要指標として営業人員を増強し、bellSalesAIの拡販を目指す。</li><li>地銀のCVC部門を中心に2nd closeでのエクイティ調達を見込む。</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>株式会社Linc&#x27;well</h2>
+        <div class="card-meta">
+          <span class="pill pill-gray">非上場</span>
+          <span class="pill pill-blue">投資原価 13.0億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2022/12</th><th>2023/12</th><th>2024/12</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>5,776</td><td>11,028</td><td>14,060</td></tr><tr><td class="row-label">営業損益</td><td class="negative">▲3,349</td><td class="negative">▲1,279</td><td class="negative">▲967</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲3,372</td><td class="negative">▲1,263</td><td class="negative">▲964</td></tr><tr><td class="row-label">総資産</td><td>7,134</td><td>7,703</td><td>7,238</td></tr><tr><td class="row-label">純資産</td><td>5,555</td><td>6,055</td><td>5,065</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>2024年12月期（実績）：売上 14,060 営業損益▲967</li><li>2025年12月期（見込）：売上 14,947 営業損益 202</li><li>25年12月には月次実績として、売上1,318百万円（予算1,209百万円）を達成。通期では期初計画と比較して、売上高は下回るが純利益は広告宣伝費のエコノミクスを調整してきた影響で大幅に超過する見込み。対面診療の新規開院や、対面診療からオンライン診療へのコンバージョンも順調に進んでいる。</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>2026年12月期（計画）：売上 14,735 営業損益 33</li><li>2026年12月期は対面診療からオンライン診療のコンバージョンも企図したクリニックの多店舗展開化に注力する。26年は15-20店舗、27年は25-30店舗新規出店予定。オンライン診療へのコンバージョンは中期的に効果が出る施策であることに加え、広告宣伝費を規律ある水準で運用する方針であることから、上記26年通期計画は保守的に前期水準並に設定しているが、社内予算上では増収増益を想定。</li><li>2024年度から取り組んでいる同業や薬局等のロールアップは今期も積極的に実施予定。</li><li>証券会社とのIPOに向けたコミュニケーションを継続しつつ、M&amp;Aも視野に入れたデュアルトラックでのExitを検討中。</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>SATORI株式会社</h2>
+        <div class="card-meta">
+          <span class="pill pill-gray">非上場</span>
+          <span class="pill pill-blue">投資原価 12.5億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2023/3</th><th>2024/3</th><th>2025/3</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>1,454</td><td>1,441</td><td>1,372</td></tr><tr><td class="row-label">営業損益</td><td class="negative">▲862</td><td class="negative">▲322</td><td class="negative">▲63</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲874</td><td class="negative">▲337</td><td class="negative">▲111</td></tr><tr><td class="row-label">総資産</td><td>1,850</td><td>1,494</td><td>1,105</td></tr><tr><td class="row-label">純資産</td><td>888</td><td>550</td><td>439</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>2025年3月期(実績) 売上高 1,372 営業損益 ▲63</li><li>2026年3月期(2025年12月時点実績) 売上高 1,122 営業損益 ▲28</li><li>2026年3月期(見込・連結) 売上高 1,517 営業損益 ▲48</li><li>SATORI社（SATORI＋マーケティングユニット）においては、2025年11月末時点で4か月連続MRR前月比プラスを達成し、目標対比でも概ね順調に推移している。2025年7月にM&amp;Aを実行したフォームメーラー社についても、計画対比で順調に推移している。</li><li>2025年10月には、フォームメーラー社買収資金として、みずほ銀行よりバックファイナンス3.94億円を調達。</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>2027年3月期(計画・連結) 売上高 1,769 営業損益 13</li><li>引き続きM&amp;Aの可能性を検討し、「SATORI」の付加価値向上を目指す。</li><li>M&amp;Aに伴う資金補強については、引き続きデットを中心に検討していく。</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>ClipLine株式会社</h2>
+        <div class="card-meta">
+          <span class="pill pill-gray">非上場</span>
+          <span class="pill pill-blue">投資原価 10.0億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2023/8</th><th>2024/8</th><th>2025/8</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>942</td><td>1,120</td><td>1,171</td></tr><tr><td class="row-label">営業損益</td><td>-</td><td class="negative">▲122</td><td class="negative">▲49</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲347</td><td class="negative">▲130</td><td class="negative">▲55</td></tr><tr><td class="row-label">総資産</td><td>1,251</td><td>1,164</td><td>1,023</td></tr><tr><td class="row-label">純資産</td><td>654</td><td>524</td><td>469</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>2025年8月期(実績) 売上高 1,171 営業損益 ▲49</li><li>2026年8月期(2025年12月時点実績) 売上高 374 営業損益 ▲14</li><li>2026年8月期(見込) 売上高 1,333 営業損益 17</li><li>ABILI事業は、既存取引先からのアップセル/クロスセルは順調に推移しているが、営業人員不足に伴う新規案件の受注が停滞。コンサルティング事業においては、新規案件の獲得遅れにより、予算から大幅に乖離。</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>2027年8月期(計画) 売上高 2,061 営業損益 95 ※新事業計画策定中</li><li>ABILI事業とコンサルティング事業の成長を図ると同時に、新規事業やAI等の追加機能開発を進めている。</li><li>M&amp;Aを念頭に置いたデット調達を検討する可能性あり。</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>ピクシーダストテクノロジーズ株式会社</h2>
+        <div class="card-meta">
+          <span class="pill pill-gray">非上場</span>
+          <span class="pill pill-blue">投資原価 10.0億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2023/4</th><th>2024/4</th><th>2025/4</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>706</td><td>992</td><td>1,738</td></tr><tr><td class="row-label">営業損益</td><td class="negative">▲2,129</td><td class="negative">▲2,225</td><td class="negative">▲1,571</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲2,167</td><td class="negative">▲2,250</td><td class="negative">▲1,547</td></tr><tr><td class="row-label">総資産</td><td>3,401</td><td>2,969</td><td>2,694</td></tr><tr><td class="row-label">純資産</td><td>1,701</td><td>1,433</td><td>1,108</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>&lt;事業進捗&gt;</li><li>2025年4月期実績：売上 1,738百万円、営業損失 ▲1,571百万円</li><li>2026年4月期実績（25年12月末時点）：売上 1,128百万円、営業損失 ▲935百万円</li><li>2026年4月期見込：売上 2,422百万円、営業損失 ▲1,153百万円</li><li>2023年8月に米国NASDAQ市場に上場したものの、極端に流動性が低い状態が続いたこと、ロックアップ解除後の売り圧力で株価が急落し回復目処が立たなかったこと、上場維持コストが2-3億円程度掛かること、開示コストの高さ等を勘案して2024年11月に非上場化を実行、2025年7月に開示義務も結了した。</li><li>25年4月期は売上予算1,731百万円に対して1,738百万円で着地して期初目標達成。前期からの売上成長率は174%。</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>&lt;今後の成長戦略、ビジョン&gt;</li><li>2027年4月期計画：売上 3,959百万円、営業損益 112百万円</li><li>27年4月期の通期黒字化及び、29年4月期の国内再上場を目指して、引き続き成長資金を投下する。具体的な黒字転換に向けた施策として、特にG&amp;A改善とROAS改善に注力する。</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>ユアマイスター株式会社</h2>
+        <div class="card-meta">
+          <span class="pill pill-gray">非上場</span>
+          <span class="pill pill-blue">投資原価 10.0億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2023/10</th><th>2024/10</th><th>2025/10</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>1,609</td><td>1,456</td><td>1,591</td></tr><tr><td class="row-label">営業損益</td><td class="negative">▲342</td><td class="negative">▲170</td><td class="negative">▲63</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲341</td><td class="negative">▲182</td><td class="negative">▲87</td></tr><tr><td class="row-label">総資産</td><td>857</td><td>641</td><td>464</td></tr><tr><td class="row-label">純資産</td><td class="negative">▲216</td><td class="negative">▲399</td><td class="negative">▲486</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>2025年10月期(実績) 売上高 1,591 営業損益 ▲62</li><li>2026年10月期(12月時点実績) 売上高 325 営業損益 10</li><li>2026年10月期(見込) 売上高 1,761 営業損益 41</li><li>エンタープライズ営業の強化による法人受注の拡大のほか、優待やOEM提携販売による法人受注モデルの拡大に成功。マーケットプレイスの改善を目的に、SEO対策の強化、LINEでの集客施策拡充、注文UX向上などに取り組んだ。</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>2027年10月期 売上高 2,000 営業損益 150</li><li>引き続き代理店モデルを軸にした業務提携を促進していく。また、昨年開始したオリジナル商品の販売を梃に、物販事業の拡大も目指す。社内体制については、AI（Gemini enterprise）を活用することで、顧客満足度向上、社内システム刷新/生産性向上による収益性の向上、にも注力していく。</li><li>資本業務提携を視野に、エクイティ調達を目指す。</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>株式会社TOKIUM</h2>
+        <div class="card-meta">
+          <span class="pill pill-gray">非上場</span>
+          <span class="pill pill-blue">投資原価 8.6億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2023/5</th><th>2024/5</th><th>2025/5</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>1,518</td><td>3,485</td><td>4,601</td></tr><tr><td class="row-label">営業損益</td><td class="negative">▲1,859</td><td class="negative">▲621</td><td class="negative">▲779</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲1,884</td><td class="negative">▲604</td><td class="negative">▲782</td></tr><tr><td class="row-label">総資産</td><td>2,642</td><td>3,136</td><td>4,393</td></tr><tr><td class="row-label">純資産</td><td>1,261</td><td>652</td><td>1,357</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>2025年5月期(実績) 売上高4,582.6 営業損益▲731</li><li>2026年5月期(12月末時点実績) 売上高3,117.6 営業損益▲597</li><li>2026年5月期(見込) 売上高5,926.6 営業損益▲558.0</li><li>主力SaaSの堅調な成長に加え、AI経費精算の新規受注により、10月単月のMRR、売上高ともに計画を超過して推移。また、SMBCグループ（SMCC/SMFG）との包括業務提携に向けた基本合意が進捗しており、金融プラットフォーム連携や法人カード共同開発等の議論が具体化している。</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>2027年5月期(計画) 売上高8,363 営業損益46</li><li>SMBCグループとの提携を活かし、顧客基盤の拡大とTOKIUMカード等FinTech領域への展開を加速させる。2026年8月をターゲットとする上場につき、証券会社を含め議論を進めている。</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>Wovn　Technologies株式会社</h2>
+        <div class="card-meta">
+          <span class="pill pill-gray">非上場</span>
+          <span class="pill pill-blue">投資原価 5.0億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2023/2</th><th>2024/2</th><th>2025/2</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>1,022</td><td>1,393</td><td>2,036</td></tr><tr><td class="row-label">営業損益</td><td class="negative">▲1,112</td><td class="negative">▲294</td><td>13</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲1,137</td><td class="negative">▲371</td><td>74</td></tr><tr><td class="row-label">総資産</td><td>2,250</td><td>1,964</td><td>2,262</td></tr><tr><td class="row-label">純資産</td><td>663</td><td>307</td><td>380</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>2025年2月期（実績）売上2,036 営業損益13</li><li>2026年2月期（2025年12月末時点）売上 2,145 営業損益 284</li><li>2026年2月期（見込）売上 2,628 営業損益 345</li><li>展示会でのIP（ドラえもん）活用による認知度向上や、大手製造業を中心とした「翻訳Now.」の導入拡大を背景に、New CMRRは累計50.9百万円まで伸びている。</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>2027年2月期（計画）売上 3,365  営業損益 550</li><li>来期は広告宣伝費を抑制しROIを極大化させつつ、AI製品（AI Agent等）の強化やパートナー販売モデル構築を通じて、さらなる高水準の収益獲得を目指す。</li><li>IPOを延期し、引き続きプライベートで成長を目指す。直近で資金調達は予定していない。M&amp;AでのExitも模索している。</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>株式会社KOMPEITO</h2>
+        <div class="card-meta">
+          <span class="pill pill-gray">非上場</span>
+          <span class="pill pill-blue">投資原価 5.0億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2023/8</th><th>2024/8</th><th>2025/8</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>1,696</td><td>3,101</td><td>5,577</td></tr><tr><td class="row-label">営業損益</td><td class="negative">▲431</td><td class="negative">▲446</td><td class="negative">▲205</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲435</td><td class="negative">▲458</td><td class="negative">▲236</td></tr><tr><td class="row-label">総資産</td><td>1,143</td><td>2,996</td><td>2,822</td></tr><tr><td class="row-label">純資産</td><td>367</td><td>979</td><td>743</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>2025年8月期（実績）：売上 5,577 営業損益 ▲205</li><li>2026年8月期（2025年12月末時点実績）：売上 2,602 営業損益 304</li><li>2026年8月期（見込）：売上 9,646 営業損益 818</li><li>導入先が5,885社（12月時点）を突破し、2025年12月は単月/単体で売上686百万円、営業利益100百万円と引き続き高い成長率を維持している。</li><li>前期までに買収してきた乳販店や高齢者施設向け給食会社による売上が単月で96百万円、営業利益が6百万円に到達し順調にPMIが進捗。</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>2027年8月期（計画）：売上 12,820 営業損益 1,759</li><li>新規事業として、米国でのオフィス向けデリバリー事業や周辺領域のM&amp;Aを強化している状況。</li><li>2026年8月期中にオーバーハング懸念を一部解消するためのセカンダリーを検討中。</li><li>2025年8月期基準で期越え上場（2026年9月末ターゲット）を計画中。ARR100億円以上を示せる状況になった段階で上場させる計画。</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>Space BD株式会社</h2>
+        <div class="card-meta">
+          <span class="pill pill-gray">非上場</span>
+          <span class="pill pill-blue">投資原価 5.0億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2023/8</th><th>2024/8</th><th>2025/8</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>1,021</td><td>2,317</td><td>1,679</td></tr><tr><td class="row-label">営業損益</td><td class="negative">▲332</td><td>55</td><td class="negative">▲362</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲330</td><td>21</td><td class="negative">▲362</td></tr><tr><td class="row-label">総資産</td><td>2,520</td><td>1,695</td><td>1,077</td></tr><tr><td class="row-label">純資産</td><td>357</td><td>389</td><td>64</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>2025年8月期(実績) 売上高 1,679 営業損益 ▲362</li><li>2026年8月期(2025年12月時点実績) 売上高 520 営業損益 ▲115</li><li>2026年8月期(見込) 売上高 2,619 営業損益 ▲321</li><li>既存事業における着実な案件の積み上げに加えて、宇宙戦略基金等の影響により売上高は前期比で増加する見込みであるものの、同基金等の低利益率案件の影響により売上総利益の増加幅は小さく、主に人員の拡充等の先行投資による販管費の増加に伴って、営業損益は前期比でマイナスとなっている。</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>2027年8月期 売上高 5,684 営業損益 ▲449</li><li>強みであるLS事業の深化（ロングポジションの強化）や、汎用PL、TOHRO、ZABTONなどのハードウェア開発、安全保障分野への展開、更には、今回の調達資金を原資としたM&amp;Aを視野に入れた成長戦略を描いている。</li><li>2025年末開始したエクイティ調達がオーバーサブで着地予定。直近の見立てではMAX36.3億円（内、3.3億円はセカンダリ）でClose予定。</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>アスエネ株式会社</h2>
+        <div class="card-meta">
+          <span class="pill pill-gray">非上場</span>
+          <span class="pill pill-blue">投資原価 4.1億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2023/9</th><th>2024/9</th><th>2025/9</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>1,209</td><td>1,624</td><td>2,724</td></tr><tr><td class="row-label">営業損益</td><td class="negative">▲467</td><td class="negative">▲796</td><td class="negative">▲1,193</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲441</td><td class="negative">▲850</td><td class="negative">▲1,286</td></tr><tr><td class="row-label">総資産</td><td>3,041</td><td>7,459</td><td>7,124</td></tr><tr><td class="row-label">純資産</td><td>1,432</td><td>5,585</td><td>4,800</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>2025年9月期(実績) 売上高2,723 営業損益▲1,193</li><li>2026年9月期(12月末時点実績) 売上高869 営業損益▲120</li><li>2026年9月期(見込) 売上高5,903 営業損益▲738</li><li>CO2可視化ツール「アスエネ」を軸とした事業拡大に注力。カーボンクレジット取引所事業”Carbon EX”も伸長し、東京都やスズキからの受注を達成。M&amp;A戦略においては、2025年10月末に米国Iconic Air社との合併を完了し、PMIを推進中。</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>2027年9月期(計画) 売上高8,688 営業損益232</li><li>米国NZero社のサービスを日本・タイで展開開始し、エネルギーマネジメント領域を強化。また、カーボンクレジット情報PF「ExRoad」の買収検討や、住友商事グループ（PSE社）との資本業務提携の協議を進めるなど、M&amp;Aおよびグローバルアライアンスを通じたエネルギー・脱炭素領域での非連続的な成長を目指す。</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>株式会社キャスター</h2>
+        <div class="card-meta">
+          <span class="pill pill-green">上場</span>
+          <span class="pill pill-blue">投資原価 4.0億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2023/8</th><th>2024/8</th><th>2025/8</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>4,179</td><td>4,440</td><td>4,588</td></tr><tr><td class="row-label">営業損益</td><td>3</td><td class="negative">▲151</td><td class="negative">▲383</td></tr><tr><td class="row-label">当期損益</td><td>29</td><td class="negative">▲218</td><td class="negative">▲393</td></tr><tr><td class="row-label">総資産</td><td>1,874</td><td>2,455</td><td>1,872</td></tr><tr><td class="row-label">純資産</td><td>1,039</td><td>1,103</td><td>710</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>2025年8月期(実績) 売上高4,588 営業損益▲393</li><li>26年8月期1Q決算は売上高1,128百万円、営業利益19百万円で着地し、黒字転換を達成。主力のBPaaS事業は大型解約の影響で減収も、原価最適化等のコスト構造改革によりセグメント利益はYoY+32%と大幅増益。AI Tech事業も「My Assistant」の伸長等で赤字幅を縮小。</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>2026年8月期(計画) 売上高5,231 営業損益10</li><li>BPaaSとAI Techを成長コアと位置づけ、AI活用による生産性向上とサービス高付加価値化へ集中投資を実施。HR事業については利益確保を優先し、28年8月期における最終利益の黒字化を計画する。</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>株式会社Schoo</h2>
+        <div class="card-meta">
+          <span class="pill pill-green">上場</span>
+          <span class="pill pill-blue">投資原価 3.9億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2021/9</th><th>2022/9</th><th>2023/9</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>978</td><td>1,318</td><td>2,008</td></tr><tr><td class="row-label">営業損益</td><td>-</td><td class="negative">▲753</td><td class="negative">▲624</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲405</td><td class="negative">▲771</td><td class="negative">▲680</td></tr><tr><td class="row-label">総資産</td><td>927</td><td>1,774</td><td>2,098</td></tr><tr><td class="row-label">純資産</td><td>445</td><td>246</td><td>165</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>2025年9月期（実績）売上高 3,360 営業損益 290</li><li>2026年9月期（計画）売上高 3,901 営業損益 266</li><li>通期の売上高、営業利益は前期比(累計)で堅調に推移。ともに過去最高額を記録。</li><li>通期修正計画に対する達成率は、売上高が99.9%、営業利益が107.2%</li><li>※決算説明資料（2025/11/14より）</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>2027年9月期（計画）売上高 - 営業損益 -</li><li>法人事業の成長性・効率性改善を継続しつつ、既存の法人向けeラーニング市場からHRビジネス領域への事業ドメイン拡張を目指す。</li><li>※決算説明資料（2025/11/14より）</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>Crevo株式会社</h2>
+        <div class="card-meta">
+          <span class="pill pill-gray">非上場</span>
+          <span class="pill pill-blue">投資原価 3.0億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2023/9</th><th>2024/9</th><th>2025/9</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>774</td><td>681</td><td>559</td></tr><tr><td class="row-label">営業損益</td><td class="negative">▲93</td><td>10</td><td>5</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲96</td><td>32</td><td>15</td></tr><tr><td class="row-label">総資産</td><td>244</td><td>148</td><td>180</td></tr><tr><td class="row-label">純資産</td><td class="negative">▲222</td><td class="negative">▲190</td><td class="negative">▲175</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>2025年9月期(実績) 売上高 559 営業損益 5</li><li>2026年9月期(12月時点実績) 売上高 123 営業損益 14</li><li>2026年9月期(見込) 売上高 675 営業損益 54</li><li>プロダクション事業において既存顧客のリピート受注は堅調に推移し営業黒字化を達成したものの、新規獲得における広告運用の効率悪化や新商材へのリソース分散が主力事業の受注率低下を招き、売上高が減少。</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>2027年9月期(計画) 売上高 776 営業損益 55</li><li>動画制作に留まらず、企業課題を解決するソリューション提供を志向すると共に、制作プロセスにAIを導入することで、クリエイティブの質向上と生産効率の改善を両立させることを目指す。</li><li>直近ファイナンスの予定なし</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>株式会社Pale Blue</h2>
+        <div class="card-meta">
+          <span class="pill pill-gray">非上場</span>
+          <span class="pill pill-blue">投資原価 2.1億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2023/9</th><th>2024/9</th><th>2025/9</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>65</td><td>52</td><td>353</td></tr><tr><td class="row-label">営業損益</td><td class="negative">▲749</td><td class="negative">▲912</td><td class="negative">▲1,164</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲395</td><td class="negative">▲755</td><td class="negative">▲464</td></tr><tr><td class="row-label">総資産</td><td>944</td><td>3,038</td><td>5,120</td></tr><tr><td class="row-label">純資産</td><td>280</td><td>1,612</td><td>2,653</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>&lt;事業進捗&gt;</li><li>2025年9月期実績：売上 353百万円 営業損益 ▲1,164百万円</li><li>2026年9月期実績（25年12月末時点）：売上17百万円 営業損益 ▲263百万円</li><li>2026年9月期見込： 売上1,258百万円 営業損益 ▲1,459百万円</li><li>量産化製品となるレジストジェットスラスタ（PBR-20, PBR-50）の初期ロットを納品。量産化体制を構築するために、つくば市に生産拠点を2024年11月に着工し、2026年3月に竣工/生産開始。引き続き各国の衛星メーカー・政府・大学案件のパイプラインを積み上げている。</li><li>2025年7月にプレ時価総額83億円で15億円のシリーズDを実施。</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>&lt;今後の成長戦略&gt;</li><li>2027年9月期計画：売上 3,177百万円 営業損益 ▲1,792百万円</li><li>PBIの大型受注/SBIR3ステージゲート通過を事業上の重要な達成事項とし、注力する。</li><li>2026年12月または2027年3月ターゲットの上場に向けて準備中。主幹事証券はSMBC日興証券、監査法人はESネクスト監査法人。</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>株式会社bitFlyer Holdings</h2>
+        <div class="card-meta">
+          <span class="pill pill-gray">非上場</span>
+          <span class="pill pill-blue">投資原価 1.5億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2022/12</th><th>2023/12</th><th>2024/12</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>1,636</td><td>6,413</td><td>14,904</td></tr><tr><td class="row-label">営業損益</td><td>78</td><td class="negative">▲221</td><td>7,896</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲481</td><td>436</td><td>7,471</td></tr><tr><td class="row-label">総資産</td><td>17,803</td><td>589,808</td><td>1,213,831</td></tr><tr><td class="row-label">純資産</td><td>11,327</td><td>19,817</td><td>27,289</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>2025年12月期（連結計画）売上16,748 営業損益 7,813</li><li>2026年12月期（連結計画）売上18,328  営業損益9,363</li><li>計画は25年1月に最終開示されたもの。また実績値は発行体の情報管理ポリシーの変更により非開示</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>2027年12月期 非開示</li><li>発行体の情報管理ポリシーの変更により非開示</li><li>2025年12月期を基準期とし、2026年6月に上場を予定</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>ペイトナー株式会社</h2>
+        <div class="card-meta">
+          <span class="pill pill-gray">非上場</span>
+          <span class="pill pill-blue">投資原価 1.5億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2022/12</th><th>2023/12</th><th>2024/12</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>366</td><td>791</td><td>1,497</td></tr><tr><td class="row-label">営業損益</td><td class="negative">▲547</td><td class="negative">▲139</td><td class="negative">▲220</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲619</td><td class="negative">▲249</td><td class="negative">▲308</td></tr><tr><td class="row-label">総資産</td><td>1,797</td><td>1,681</td><td>4,554</td></tr><tr><td class="row-label">純資産</td><td>144</td><td>130</td><td>988</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>2024年12月期（実績）売上高 1,497 営業損益 ▲220</li><li>2025年12月期（速報）売上高 2,770 営業損益 ▲9</li><li>2026年12月期（計画）売上高 3,729 営業損益 556</li><li>ファクタリング事業においては、25/12末時点でGMV2,776百万円を達成し、当初計画に対して好調に推移している。CACについても計画より改善。一方、CS審査の承認率低下により新規件数が伸び悩んでいるため、改善に向けて事業部で分析対応中。</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>2027年12月期 (計画) 売上高 5,192 営業損益 1,249</li><li>広告投資はTV・動画配信を活用し、新規獲得効率を維持しながら獲得量を増やす。（2026/12期も契約更新費用および配信費を織り込み。）ファクタリング保証料はGardia社の新条件を反映し、保証料率は3.90%→3.35%へ低下。2026/12期は通期で経常利益ベース黒字化を達成見込み。</li><li>直近、20億円規模のエクイティ調達活動を開始。</li></ul>
+      </div>
+    </div>
+    <div class="company-card">
+      <div class="card-header">
+        <h2>株式会社Ｔimers</h2>
+        <div class="card-meta">
+          <span class="pill pill-gray">非上場</span>
+          <span class="pill pill-blue">投資原価 1.3億円</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-grid">
+          <div class="card-section">
+            <h3>財務実績（百万円）</h3>
+            <div class="table-wrap"><table class="fin-table">
+      <thead><tr><th>(百万円)</th><th>2023/3</th><th>2024/3</th><th>2025/3</th></tr></thead>
+      <tbody><tr><td class="row-label">売上高</td><td>1,333</td><td>1,638</td><td>1,871</td></tr><tr><td class="row-label">営業損益</td><td class="negative">▲554</td><td class="negative">▲115</td><td class="negative">▲456</td></tr><tr><td class="row-label">当期損益</td><td class="negative">▲554</td><td class="negative">▲131</td><td class="negative">▲491</td></tr><tr><td class="row-label">総資産</td><td>336</td><td>1,026</td><td>913</td></tr><tr><td class="row-label">純資産</td><td class="negative">▲136</td><td>114</td><td class="negative">▲247</td></tr></tbody>
+    </table></div>
+          </div>
+          <div class="card-section">
+            <h3>進捗・近況</h3>
+            <ul><li>2025年3月期(実績) 売上高1,870 営業損益▲479</li><li>2026年3月期(12月末時点実績) 売上高1,753 営業損益▲123</li><li>2026年3月期(見込) 売上高2,407.3 営業損益▲125</li><li>主力のアシスタントオンライン（AO）およびオンラインBPO（OBPO）事業がいずれも過去最高売上を記録するなど好調。7月にM&amp;Aを実施したスターパートナーズ社（歯科RPO）のPMIも計画通り進行中。また、新規事業の音声対話型AI面接サービスが国の補助金事業に採択されるなど、AI×HR領域の展開も加速している。</li></ul>
+          </div>
+        </div>
+      </div>
+      <div class="card-topics">
+        <h3>今後の展開</h3>
+        <ul><li>2027年3月期(計画) 売上高2,666 営業損益101</li><li>在宅ワーカーへのAIリスキリングを通じた単価向上や、自社開発のAIエージェントサービスの展開に注力。引き続きIPO準備と並行し、周辺領域でのM&amp;Aによる非連続な成長も模索する。</li></ul>
+      </div>
+    </div>
+
+</div>
+</body>
+</html>
